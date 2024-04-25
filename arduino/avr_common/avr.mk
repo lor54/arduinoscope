@@ -8,7 +8,7 @@ AS_OPTS=-x assembler-with-cpp $(CC_OPTS)
 AVRDUDE=avrdude
 
 # com1 = serial port. Use lpt1 to connect to parallel port.
-AVRDUDE_PORT = /dev/tty.usbserial-2120    # programmer connected to serial device
+AVRDUDE_PORT = /dev/tty.usbserial-21340    # programmer connected to serial device
 
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET):i
 AVRDUDE_FLAGS = -b 115200 -p m2560 -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
