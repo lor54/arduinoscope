@@ -3,7 +3,7 @@
 #include <util/delay.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "avr_common/uart.h" // this includes the printf and initializes it
+#include "avr_common/uart.h"
 
 unsigned int ADC_read(unsigned char channel) {
     ADMUX = (ADMUX & 0xF0) | (channel & 0x0F);
