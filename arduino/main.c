@@ -14,12 +14,26 @@ unsigned int ADC_read(unsigned char channel) {
 }
 
 int main(void){
-    printf_init();
+    usart_init();
+
+    char buffer[6];
+    while(1) {
+        snprintf(buffer, 6, "Ciao\n");
+
+        usart_pstr(buffer, sizeof(buffer));
+        while(uart_send_ready());
+        
+        _delay_ms(1000);
+    }
 
     ADMUX=(1<<REFS0);
     ADCSRA=(1<<ADEN)|(1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0); // Prescaler 128
 
     while(1) {        
+        char prova[5];
+        usart_getchar(&prova, sizeof(prova));
+        printf("%c\n", prova);
+        
         int i = ADC_read(0);
         printf("Lettura canale 0: %d\n", i);
         _delay_ms(1000);

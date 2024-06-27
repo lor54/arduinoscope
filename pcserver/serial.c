@@ -3,8 +3,8 @@
 #include <termios.h>
 #include <fcntl.h>
 
-int initSerial() {
-    int serialfd = open("/dev/tty.usbserial-21340", O_RDWR | O_NOCTTY | O_NDELAY);
+int initSerial(const char* devicePath) {
+    int serialfd = open(devicePath, O_RDWR | O_NOCTTY | O_NDELAY);
     if (serialfd == -1)
         perror("Error opening the serial port");
     else
@@ -12,6 +12,8 @@ int initSerial() {
 
     struct termios attribs;
     attribs.c_cflag &= ~O_NONBLOCK;
+
+    attribs.c_iflag &= ~(IXON | IXOFF | IXANY); // Disabilita il controllo del flusso software
 
     /* get the current settings */
     tcgetattr(serialfd, &attribs);

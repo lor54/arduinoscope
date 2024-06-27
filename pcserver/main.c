@@ -12,8 +12,25 @@
 
 #define MAX_CHN 8
 
-void sampleChannels(bool* sampleChannels, int samplingFrequency) {
-    printf("Sampling %d channels at %d Hz...\n", sampleChannels, samplingFrequency);
+void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, int samplingFrequency) {
+    printf("Sampling %d channels at %d Hz...\n", numChannels, samplingFrequency);
+
+    char data[] = "Hello, Serial!";
+
+    while(1) {
+        if (write(serialfd, data, sizeof(data)) == -1) {
+            perror("Errore durante la scrittura sulla porta seriale");
+        }
+
+        printf("CIao\n");
+        sleep(1);
+
+        char buf[30] = {0};
+        read(serialfd, buf, 29);
+        fprintf(stdout, "Buffer: %s\n", buf);
+        sleep(1);
+    }
+
     sleep(1);
 }
 
@@ -47,12 +64,11 @@ void configureSamplingFrequency(int *samplingFrequency) {
 
 int main() {
 
-    int serialfd = initSerial();
+    int serialfd = initSerial("/dev/tty.usbserial-110");
 
     int choice;
     int samplingFrequency = 1000;
     int selectedChannels = 0;
-    bool channelsSelected = false;
     bool channels[MAX_CHN] = {false};
 
     system("clear");
@@ -70,8 +86,8 @@ int main() {
 
         switch (choice) {
             case 1:
-                if (channelsSelected) {
-                    sampleChannels(channels, samplingFrequency);
+                if (selectedChannels > 0) {
+                    sampleChannels(serialfd, channels, selectedChannels, samplingFrequency);
                 } else {
                     printf("Please configure channels first.\n");
                 }                
@@ -93,12 +109,5 @@ int main() {
         while(getchar() != '\n');
     } while (choice != 4);
 
-    while(1) {
-        char buf[30] = {0};
-        read(serialfd, buf, 29);
-        fprintf(stdout, "Buffer: %s\n", buf);
-    }
-
-    close(serialfd);
     return 0;
 }
