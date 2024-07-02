@@ -53,3 +53,10 @@ dkms.conf
 
 .DS_Store
 .vscode/
+
+arduino/*.hex
+arduino/*.o
+arduino/*.elf
+
+pcserver/pcserver
+pcserver/*.o
