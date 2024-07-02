@@ -4,7 +4,7 @@
 #include <fcntl.h>
 
 int initSerial(const char* devicePath) {
-    int serialfd = open(devicePath, O_RDWR | O_NOCTTY | O_NDELAY);
+    int serialfd = open(devicePath, O_RDWR | O_NOCTTY | O_SYNC);
     if (serialfd == -1)
         perror("Error opening the serial port");
     else
@@ -12,9 +12,9 @@ int initSerial(const char* devicePath) {
 
     struct termios attribs;
     attribs.c_cflag &= ~O_NONBLOCK;
-
-    attribs.c_iflag &= ~(IXON | IXOFF | IXANY); // Disabilita il controllo del flusso software
-
+    attribs.c_cflag &= ~(PARENB | PARODD);               // shut off parity
+    attribs.c_cflag |= 0;
+    attribs.c_cflag = (attribs.c_cflag & ~CSIZE) | CS8;      // 8-bit chars
     /* get the current settings */
     tcgetattr(serialfd, &attribs);
 

@@ -8,9 +8,9 @@
 #include <stdbool.h>
 
 // ********************************************************************************
-// usart Related
+// uart Related
 // ********************************************************************************
-void usart_init() {
+void uart_init() {
     cli();
     // Set baud rate
     UBRR0H = (uint8_t) (MYUBRR>>8);
@@ -20,20 +20,28 @@ void usart_init() {
     uart_rx_buffer_last = NULL;
     uart_tx_buffer = NULL;
     uart_tx_buffer_last = NULL;
+    data_received = NULL;
 
     UCSR0C = _BV(UCSZ01) | _BV(UCSZ00); /* 8-bit data */ 
-    UCSR0B = _BV(RXEN0) | _BV(TXEN0) | _BV(RXCIE0);   /* Enable RX and TX */  
+    UCSR0B = _BV(RXEN0) | _BV(TXEN0);   /* Enable RX and TX */  
     sei();
 }
 
-void usart_putchar(char* data) {
+void uart_putchar(char* data) {
     uart_tx_buffer = data;
     uart_tx_buffer_last = uart_tx_buffer + 1;
 
     UCSR0B |= _BV(UDRIE0);
 }
 
-void usart_pstr(char *s, int size) {
+char uart_setReceivedBuffer(char* buffer, int size, bool* received) {
+	uart_rx_buffer = buffer;
+	uart_rx_buffer_last = buffer + size;
+
+    data_received = received;
+}
+
+void uart_pstr(char *s, int size) {
     uart_tx_buffer = s;
     uart_tx_buffer_last = uart_tx_buffer + size;
 
@@ -48,6 +56,16 @@ ISR(USART0_UDRE_vect) {
         uart_tx_buffer++;
     } else {
         UCSR0B &= ~_BV(UDRIE0);
+    }
+}
+
+ISR(USART0_RX_vect) {
+    char received = UDR0;
+    if (uart_rx_buffer < uart_rx_buffer_last){
+        *uart_rx_buffer = received;
+        uart_rx_buffer++;
+    } else {
+        *data_received = true;
     }
 }
 

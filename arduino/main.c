@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "avr_common/uart.h"
+#include "utils.h"
 
 unsigned int ADC_read(unsigned char channel) {
     ADMUX = (ADMUX & 0xF0) | (channel & 0x0F);
@@ -14,16 +15,24 @@ unsigned int ADC_read(unsigned char channel) {
 }
 
 int main(void){
-    usart_init();
+    uart_init();
+    char rx_buffer[2] = {0, 0};
+    bool data_received = false;
 
-    char buffer[6];
+    uart_setReceivedBuffer(rx_buffer, 2, &data_received);
+    UCSR0B |= _BV(RXCIE0);
+
     while(1) {
-        snprintf(buffer, 6, "Ciao\n");
+        if(data_received && rx_buffer[0] == 0x81) {
+            uart_pstr("Ciao\n", 4);
+            while(uart_send_ready());
 
-        usart_pstr(buffer, sizeof(buffer));
-        while(uart_send_ready());
-        
-        _delay_ms(1000);
+            data_received = false;
+            cleanBuffer(&rx_buffer, 2);
+        } else {
+            uart_pstr(rx_buffer, 2);
+            while(uart_send_ready());
+        }
     }
 
     ADMUX=(1<<REFS0);
@@ -31,7 +40,7 @@ int main(void){
 
     while(1) {        
         char prova[5];
-        usart_getchar(&prova, sizeof(prova));
+        //usart_getchar(&prova, sizeof(prova));
         printf("%c\n", prova);
         
         int i = ADC_read(0);

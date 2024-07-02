@@ -1,9 +1,11 @@
 #pragma once
+#include <stdbool.h>
 
 volatile char* uart_rx_buffer;
 volatile char* uart_rx_buffer_last;
 volatile char* uart_tx_buffer;
 volatile char* uart_tx_buffer_last;
+volatile bool* data_received;
 
 // ********************************************************************************
 // Macros and Defines
@@ -15,10 +17,8 @@ volatile char* uart_tx_buffer_last;
 // ********************************************************************************
 // Function Prototypes
 // ********************************************************************************
-void usart_init();
-void usart_putchar(char* data);
-void usart_pstr (char *s, int size);
-unsigned char usart_kbhit(void);
+void uart_init();
+void uart_putchar(char* data);
+char uart_setReceivedBuffer(char* buffer, int size, bool* usart_getchar);
+void uart_pstr (char *s, int size);
 char uart_send_ready(void);
-
-void printf_init(void);

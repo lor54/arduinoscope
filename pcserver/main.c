@@ -15,7 +15,7 @@
 void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, int samplingFrequency) {
     printf("Sampling %d channels at %d Hz...\n", numChannels, samplingFrequency);
 
-    char data[] = "Hello, Serial!";
+    char data[] = "0x81";
 
     while(1) {
         if (write(serialfd, data, sizeof(data)) == -1) {
