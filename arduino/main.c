@@ -25,31 +25,25 @@ int main(void){
     ADMUX=(1<<REFS0);
     ADCSRA=(1<<ADEN)|(1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0); // Prescaler 128
 
-    char rx_buffer[2] = {0, 0};
+    char rx_buffer[10];
     bool data_received = false;
 
-    uart_setReceivedBuffer(rx_buffer, 2, &data_received);
+    uart_setReceivedBuffer(rx_buffer, 10, &data_received);
 
     while(1) {
         if(data_received && rx_buffer[0] == CNT_REQUEST_PACKET) {
-            while(1) {
-                Response resp = {CNT_RESPONSE_PACKET, ADC_read(0), 2, 0x0A};
-                uart_SendBytes(&resp, sizeof(resp));
+            while (1) {
+                for(int i = 0; i < 8; i++) {
+                    if(rx_buffer[i + 1] != 0xFF) {
+                        Response resp = {CNT_RESPONSE_PACKET, ADC_read(rx_buffer[i+1]), rx_buffer[i+1], 0x0A};
+                        uart_SendBytes(&resp, sizeof(resp));
 
-                PORTB ^= LED;
+                        PORTB ^= LED;
 
-                _delay_ms(1000);
+                        _delay_ms(1000);
+                    }
+                }
             }
-
-            /*i = ADC_read(1);
-            sprintf(string, "Lettura canale 1: %d\n", i);
-            while(uart_send_ready());
-            _delay_ms(1000);
-
-            i = ADC_read(7);
-            sprintf(string, "Lettura canale 7: %d\n", i);
-            while(uart_send_ready());
-            _delay_ms(1000);*/
 
             data_received = false;
         } else {

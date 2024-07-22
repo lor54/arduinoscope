@@ -23,12 +23,24 @@ void printBufferHex(const char* buffer, size_t length) {
 void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, int samplingFrequency) {
     printf("Sampling %d channels at %d Hz...\n", numChannels, samplingFrequency);
 
-    unsigned char data[] = {CNT_REQUEST_PACKET, 0x22};
-    if (write(serialfd, data, 2) == -1) {
+    unsigned char data[10];
+    data[0] = CNT_REQUEST_PACKET;
+    int j = 1;
+    for(int i = 0; i < 8; i++) {
+        if(sampleChannels[i]) {
+            data[j] = i;
+        } else {
+            data[j] = 0xFF;
+        }
+        j++;
+    }
+    data[j] = 0xFF;
+
+    if (write(serialfd, data, 10) == -1) {
         perror("Errore durante la scrittura sulla porta seriale");
     }
     usleep(100);
-    if (write(serialfd, data, 2) == -1) {
+    if (write(serialfd, data, 10) == -1) {
         perror("Errore durante la scrittura sulla porta seriale");
     }
     usleep(100000);
@@ -41,7 +53,6 @@ void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, int sam
             printf("Reading: %x\n", buffer[0]);
         } while (buffer[0] != CNT_RESPONSE_PACKET);
 
-        Response* resp = (Response*) buffer;
         printf("Buffer: %x, %u, %u\n", buffer[0], buffer[1], buffer[3]);
     }
 
