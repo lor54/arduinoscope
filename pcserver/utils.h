@@ -1,5 +1,3 @@
-void cleanBuffer(char* rx_buffer, int size);
-
 enum Packets {
     CNT_REQUEST_PACKET = 0x81,
     BUF_REQUEST_PACKET = 0x82,

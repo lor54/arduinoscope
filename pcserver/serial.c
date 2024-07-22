@@ -2,32 +2,51 @@
 #include <errno.h>
 #include <termios.h>
 #include <fcntl.h>
+#include <unistd.h>
 
-int initSerial(const char* devicePath) {
-    int serialfd = open(devicePath, O_RDWR | O_NOCTTY | O_SYNC);
-    if (serialfd == -1)
+int initSerial(const char* devicePath) {    
+    int serialfd = open(devicePath, O_RDWR | O_NOCTTY | O_NDELAY);
+    if (serialfd == -1) {
         perror("Error opening the serial port");
-    else
-        fcntl(serialfd, F_SETFL, 0);
+        return -1;
+    }
 
+    fcntl(serialfd, F_SETFL, 0);
     struct termios attribs;
-    attribs.c_cflag &= ~O_NONBLOCK;
-    attribs.c_cflag &= ~(PARENB | PARODD);               // shut off parity
-    attribs.c_cflag |= 0;
-    attribs.c_cflag = (attribs.c_cflag & ~CSIZE) | CS8;      // 8-bit chars
-    /* get the current settings */
-    tcgetattr(serialfd, &attribs);
+    if (tcgetattr(serialfd, &attribs) == -1) {
+        perror("Errore durante tcgetattr");
+        close(serialfd);
+        return -1;
+    }
 
-    /* set the baudrate */
+    cfmakeraw(&attribs);
+
     cfsetospeed(&attribs, B19200); /* outut baudrate */
     cfsetispeed(&attribs, B19200); /* input baudrate */
 
-    /* eventually apply everything for your serialfd descriptor */
-    tcsetattr(serialfd, TCSANOW, &attribs);
+    attribs.c_cflag &= ~PARENB; // No parity
+    attribs.c_cflag &= ~CSTOPB; // 1 stop bit
+    attribs.c_cflag &= ~CSIZE;
+    attribs.c_cflag |= CS8;     // 8 data bits
+    attribs.c_cflag &= ~CRTSCTS; // No flow control
+    attribs.c_cflag |= CREAD | CLOCAL; // Enable receiver, Ignore modem control lines
 
-    fprintf(stdout, "Device is open, attempting read \n");
+    attribs.c_lflag &= ~ISIG;
+    attribs.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL); // No software flow control
+    attribs.c_oflag &= ~OPOST; // Raw output
 
-    fcntl(serialfd, F_SETFL, 0);
+    // Set read timeout
+    attribs.c_cc[VMIN] = 0;
+    attribs.c_cc[VTIME] = 10; // Timeout in deciseconds
 
+    tcflush(serialfd, TCIFLUSH);
+
+    if (tcsetattr(serialfd, TCSANOW, &attribs) == -1) {
+        perror("Errore durante tcsetattr");
+        close(serialfd);
+        return -1;
+    }
+
+    printf("Device is open, attempting read \n");
     return serialfd;
 }

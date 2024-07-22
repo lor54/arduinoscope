@@ -39,9 +39,10 @@ char uart_setReceivedBuffer(char* buffer, int size, bool* received) {
 	uart_rx_buffer_last = buffer + size;
 
     data_received = received;
+    UCSR0B |= _BV(RXCIE0);
 }
 
-void uart_pstr(char *s, int size) {
+void uart_SendBytes(char *s, int size) {
     uart_tx_buffer = s;
     uart_tx_buffer_last = uart_tx_buffer + size;
 

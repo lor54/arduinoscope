@@ -6,6 +6,8 @@
 #include "avr_common/uart.h"
 #include "utils.h"
 
+#define LED _BV(PB7)     // = (1 << PB0)
+
 unsigned int ADC_read(unsigned char channel) {
     ADMUX = (ADMUX & 0xF0) | (channel & 0x0F);
     ADCSRA|=(1<<ADSC);
@@ -16,43 +18,42 @@ unsigned int ADC_read(unsigned char channel) {
 
 int main(void){
     uart_init();
-    char rx_buffer[2] = {0, 0};
-    bool data_received = false;
 
-    uart_setReceivedBuffer(rx_buffer, 2, &data_received);
-    UCSR0B |= _BV(RXCIE0);
-
-    while(1) {
-        if(data_received && rx_buffer[0] == 0x81) {
-            uart_pstr("Ciao\n", 4);
-            while(uart_send_ready());
-
-            data_received = false;
-            cleanBuffer(&rx_buffer, 2);
-        } else {
-            uart_pstr(rx_buffer, 2);
-            while(uart_send_ready());
-        }
-    }
+    DDRB = LED;
+    PORTB ^= LED;
 
     ADMUX=(1<<REFS0);
     ADCSRA=(1<<ADEN)|(1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0); // Prescaler 128
 
-    while(1) {        
-        char prova[5];
-        //usart_getchar(&prova, sizeof(prova));
-        printf("%c\n", prova);
-        
-        int i = ADC_read(0);
-        printf("Lettura canale 0: %d\n", i);
-        _delay_ms(1000);
+    char rx_buffer[2] = {0, 0};
+    bool data_received = false;
 
-        i = ADC_read(1);
-        printf("Lettura canale 1: %d\n", i);
-        _delay_ms(1000);
+    uart_setReceivedBuffer(rx_buffer, 2, &data_received);
 
-        i = ADC_read(7);
-        printf("Lettura canale 7: %d\n", i);
-        _delay_ms(1000);
+    while(1) {
+        if(data_received && rx_buffer[0] == CNT_REQUEST_PACKET) {
+            while(1) {
+                Response resp = {CNT_RESPONSE_PACKET, ADC_read(0), 2, 0x0A};
+                uart_SendBytes(&resp, sizeof(resp));
+
+                PORTB ^= LED;
+
+                _delay_ms(1000);
+            }
+
+            /*i = ADC_read(1);
+            sprintf(string, "Lettura canale 1: %d\n", i);
+            while(uart_send_ready());
+            _delay_ms(1000);
+
+            i = ADC_read(7);
+            sprintf(string, "Lettura canale 7: %d\n", i);
+            while(uart_send_ready());
+            _delay_ms(1000);*/
+
+            data_received = false;
+        } else {
+            while(uart_send_ready());
+        }
     }
 }
