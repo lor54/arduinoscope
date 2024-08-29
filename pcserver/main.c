@@ -58,15 +58,12 @@ void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigne
             datasize = read(serialfd, &buffer, sizeof(buffer));
 
             if(buffer[0] == CNT_END_PACKET) {
-                printf("End packet\n");
                 exit = true;
             }
         } while (buffer[0] != CNT_RESPONSE_PACKET_BEGIN && buffer[0] != CNT_RESPONSE_PACKET && !exit);
 
         if(datasize > 0) printf("Buffer: %x, %u, %u\n", buffer[0], buffer[1], buffer[3]);
     }
-
-    printf("USCITO!");
 }
 
 void configureChannels(int *selectedChannels, bool *channels) {
@@ -117,7 +114,8 @@ int main() {
         printf("1. Start Sampling\n");
         printf("2. Configure Channels\n");
         printf("3. Configure Sampling Frequency\n");
-        printf("4. Exit\n");
+        printf("4. Configure Time\n");
+        printf("5. Exit\n");
         printf("Enter your choice: ");
         while (scanf("%d", &choice) != 1 || choice < 1 || choice > 4) {
             printf("Invalid input. Please enter a number between 1 and 4: ");
@@ -151,7 +149,7 @@ int main() {
                 printf("Invalid choice. Please enter a number between 1 and 4.\n");
         }
         while(getchar() != '\n');
-    } while (choice != 4);
+    } while (choice != 5);
 
     return 0;
 }
