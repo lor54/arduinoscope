@@ -21,7 +21,7 @@ void printBufferHex(const char* buffer, size_t length) {
     printf("\n");
 }
 
-void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time) {
+void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time, uint8_t operatingMode) {
     printf("Sampling %d channels at %d Hz...\n", numChannels, samplingFrequency);
 
     uint8_t data[18];
@@ -39,7 +39,7 @@ void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigne
     j+=4;
     uintToBytes(time, &data[j]);
     j+=4;
-    data[j] = 0xFF;
+    data[j] = operatingMode;
 
     if (write(serialfd, data, 18) == -1) {
         perror("Errore durante la scrittura sulla porta seriale");
@@ -48,7 +48,6 @@ void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigne
     if (write(serialfd, data, 18) == -1) {
         perror("Errore durante la scrittura sulla porta seriale");
     }
-    //usleep(100000);
 
     bool exit = false;
     while(!exit) {
@@ -60,7 +59,7 @@ void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigne
             if(buffer[0] == CNT_END_PACKET) {
                 exit = true;
             }
-        } while (buffer[0] != CNT_RESPONSE_PACKET_BEGIN && buffer[0] != CNT_RESPONSE_PACKET && !exit);
+        } while (buffer[0] != CNT_RESPONSE_PACKET && !exit);
 
         if(datasize > 0) printf("Buffer: %x, %u, %u\n", buffer[0], buffer[1], buffer[3]);
     }
@@ -89,13 +88,24 @@ void configureChannels(int *selectedChannels, bool *channels) {
 }
 
 void configureSamplingFrequency(unsigned int *samplingFrequency) {
-    printf("Enter the sampling frequency (Hz): ");
-    scanf("%u", samplingFrequency);
+    do {
+        printf("Enter the sampling frequency (Hz): ");
+        scanf("%u", samplingFrequency);
+    } while(*samplingFrequency <= 0);
 }
 
 void configureTime(unsigned int *time) {
-    printf("Enter the sampling time (Seconds): ");
-    scanf("%u", time);
+    do {
+        printf("Enter the sampling time (Seconds): ");
+        scanf("%u", time);
+    } while(*time <= 0);
+}
+
+void configureOperatingMode(unsigned int *operatingMode) {
+    do {
+        printf("Enter the operating mode (0 - Continuous, 1 - Buffered Mode): ");
+        scanf("%u", operatingMode);
+    } while(*operatingMode != 0 && *operatingMode != 1);
 }
 
 
@@ -105,19 +115,33 @@ int main() {
 
     int choice;
     unsigned int samplingFrequency = 1, time = 15;
+    unsigned int operatingMode = 0;
     int selectedChannels = 0;
     bool channels[MAX_CHN] = {false};
 
     system("clear");
     do {
+        int count = 0;
+        printf("Actual settings: Selected Channels: {");
+        for(int i = 0; i < MAX_CHN; i++) {
+            if(channels[i]) {
+                if(count < 1) {
+                    printf("%d", i);
+                    count++;
+                }
+                else printf(", %d", i);
+            }
+        }
+        printf("}, Sampling Frequency: %d Hz, Time: %d seconds, Operating Mode: %s\n", samplingFrequency, time, operatingMode ? "Buffered" : "Continuous");
         printf("\nMenu:\n");
         printf("1. Start Sampling\n");
         printf("2. Configure Channels\n");
         printf("3. Configure Sampling Frequency\n");
         printf("4. Configure Time\n");
-        printf("5. Exit\n");
+        printf("5. Configure Operating Mode\n");
+        printf("6. Exit\n");
         printf("Enter your choice: ");
-        while (scanf("%d", &choice) != 1 || choice < 1 || choice > 4) {
+        while (scanf("%d", &choice) != 1 || choice < 1 || choice > 6) {
             printf("Invalid input. Please enter a number between 1 and 4: ");
             while(getchar() != '\n');
         }
@@ -125,7 +149,7 @@ int main() {
         switch (choice) {
             case 1:
                 if (selectedChannels > 0) {
-                    sampleChannels(serialfd, channels, selectedChannels, samplingFrequency, time);
+                    sampleChannels(serialfd, channels, selectedChannels, samplingFrequency, time, operatingMode);
                 } else {
                     printf("Please configure channels first.\n");
                 }                
@@ -143,13 +167,17 @@ int main() {
                 system("clear");
                 break;
             case 5:
+                configureOperatingMode(&operatingMode);
+                system("clear");
+                break;
+            case 6:
                 printf("Exiting...\n");
                 break;
             default:
                 printf("Invalid choice. Please enter a number between 1 and 4.\n");
         }
         while(getchar() != '\n');
-    } while (choice != 5);
+    } while (choice != 6);
 
     return 0;
 }

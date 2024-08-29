@@ -55,6 +55,7 @@ int main(void){
         if(data_received && rx_buffer[0] == CNT_REQUEST_PACKET) {
             unsigned int samplingFrequency = bytesToUInt(&rx_buffer[9]);
             unsigned int time = bytesToUInt(&rx_buffer[13]);
+            unsigned int operatingMode = bytesToUInt(&rx_buffer[17]);
 
             OCR5A = 15624/samplingFrequency;
             int total_samples = samplingFrequency * time;
