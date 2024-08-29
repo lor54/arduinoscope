@@ -11,7 +11,7 @@ int initSerial(const char* devicePath) {
         return -1;
     }
 
-    fcntl(serialfd, F_SETFL, 0);
+    fcntl(serialfd, F_GETFL, 0);
     struct termios attribs;
     if (tcgetattr(serialfd, &attribs) == -1) {
         perror("Errore durante tcgetattr");
@@ -24,20 +24,18 @@ int initSerial(const char* devicePath) {
     cfsetospeed(&attribs, B19200); /* outut baudrate */
     cfsetispeed(&attribs, B19200); /* input baudrate */
 
-    attribs.c_cflag &= ~PARENB; // No parity
+    attribs.c_cflag &= ~(PARENB | PARODD); // No parity
     attribs.c_cflag &= ~CSTOPB; // 1 stop bit
     attribs.c_cflag &= ~CSIZE;
     attribs.c_cflag |= CS8;     // 8 data bits
-    attribs.c_cflag &= ~CRTSCTS; // No flow control
     attribs.c_cflag |= CREAD | CLOCAL; // Enable receiver, Ignore modem control lines
 
     attribs.c_lflag &= ~ISIG;
-    attribs.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL); // No software flow control
     attribs.c_oflag &= ~OPOST; // Raw output
 
     // Set read timeout
     attribs.c_cc[VMIN] = 0;
-    attribs.c_cc[VTIME] = 10; // Timeout in deciseconds
+    attribs.c_cc[VTIME] = 5; // Timeout in deciseconds
 
     tcflush(serialfd, TCIFLUSH);
 

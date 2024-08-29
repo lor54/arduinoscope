@@ -5,3 +5,9 @@ void cleanBuffer(char* rx_buffer, int size) {
         rx_buffer[i] = 0;
     }
 }
+
+unsigned int bytesToUInt(uint8_t* data) {
+    unsigned int value;
+    memcpy(&value, data, sizeof(unsigned int));
+    return value;
+}

@@ -1,1 +1,1 @@
-int initSerial();
+int initSerial(const char* devicePath);
