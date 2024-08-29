@@ -53,9 +53,9 @@ void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigne
     bool exit = false;
     while(!exit) {
         unsigned char buffer[10];
+        int datasize = 0;
         do {
-            int datasize = read(serialfd, &buffer, sizeof(buffer));
-            printf("Reading: %x\n", buffer[0]);
+            datasize = read(serialfd, &buffer, sizeof(buffer));
 
             if(buffer[0] == CNT_END_PACKET) {
                 printf("End packet\n");
@@ -63,7 +63,7 @@ void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigne
             }
         } while (buffer[0] != CNT_RESPONSE_PACKET_BEGIN && buffer[0] != CNT_RESPONSE_PACKET && !exit);
 
-        printf("Buffer: %x, %u, %u\n", buffer[0], buffer[1], buffer[3]);
+        if(datasize > 0) printf("Buffer: %x, %u, %u\n", buffer[0], buffer[1], buffer[3]);
     }
 
     printf("USCITO!");

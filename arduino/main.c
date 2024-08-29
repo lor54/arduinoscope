@@ -93,8 +93,7 @@ int main(void){
             while(uart_send_ready());
 
             data_received = false;
-        } else {
-            sleep_mode();
         }
+        sleep_mode();
     }
 }
