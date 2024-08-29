@@ -73,7 +73,7 @@ int main(void){
                         if(samples[i] != 0xFF) {
                             samples[i] = ADC_read(i);
 
-                            Response resp = {CNT_RESPONSE_PACKET, done_samples, i, 0x0A};
+                            Response resp = {CNT_RESPONSE_PACKET, samples[i], i, 0x0A};
                             uart_SendBytes(&resp, sizeof(resp));
                             while(uart_send_ready());
 

@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 
 enum Packets {
     CNT_REQUEST_PACKET = 0x81,
@@ -12,3 +13,5 @@ enum Packets {
 };
 
 void uintToBytes(unsigned int value, uint8_t* data);
+
+int getFirstChannelIndex(bool* sampleChannels, int numChannels);

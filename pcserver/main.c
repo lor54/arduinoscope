@@ -1,16 +1,13 @@
 #include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
 #include "serial.h"
 #include "utils.h"
 #include "main.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-#include <unistd.h>
+#include "file.h"
 
 #define MAX_CHN 8
 
@@ -49,6 +46,14 @@ void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigne
         perror("Errore durante la scrittura sulla porta seriale");
     }
 
+    if (operatingMode == 0) continuosSampling(serialfd, sampleChannels, numChannels, samplingFrequency, time);
+    else bufferedSampling(serialfd, sampleChannels, numChannels, samplingFrequency, time);
+}
+
+void continuosSampling(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time) {
+    openFile("adc.txt", numChannels, sampleChannels);
+    int firstChannelIndex = getFirstChannelIndex(sampleChannels, numChannels);
+
     bool exit = false;
     while(!exit) {
         unsigned char buffer[10];
@@ -61,8 +66,21 @@ void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigne
             }
         } while (buffer[0] != CNT_RESPONSE_PACKET && !exit);
 
-        if(datasize > 0) printf("Buffer: %x, %u, %u\n", buffer[0], buffer[1], buffer[3]);
+        if(datasize > 0 && buffer[0] != CNT_END_PACKET) {
+            printf("Buffer: %x, %u, %u\n", buffer[0], buffer[1], buffer[3]);
+
+            if(buffer[3] == firstChannelIndex) {
+                writeNewLine();
+            }
+            writeToFile(buffer[1]);
+        }
     }
+
+    closeFile();
+}
+
+void bufferedSampling(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time) {
+    return;
 }
 
 void configureChannels(int *selectedChannels, bool *channels) {

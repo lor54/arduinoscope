@@ -1,6 +1,6 @@
-OBJS	= main.o serial.o utils.o
-SOURCE	= main.c serial.c utils.c
-HEADER	= serial.h
+OBJS	= main.o serial.o utils.o file.o
+SOURCE	= main.c serial.c utils.c file.c
+HEADER	= serial.h utils.h file.h
 OUT	= pcserver
 FLAGS	= -g -c -Wall
 LFLAGS	= 
@@ -19,6 +19,9 @@ serial.o: serial.c
 
 utils.o: utils.c
 	$(CC) $(FLAGS) utils.c 
+
+file.o: file.c
+	$(CC) $(FLAGS) file.c 
 
 clean:
 	rm -f $(OBJS) $(OUT)
