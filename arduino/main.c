@@ -119,7 +119,54 @@ void continuousSampling(int total_samples) {
 }
 
 void bufferedSampling(int total_samples) {
+    TIMSK5 |= _BV(OCIE5A);
+    int bufSamples[8][5];
+
+    int j = 0;
+    while (done_samples < total_samples) {
+        if(read) {
+            if(j > 4) {
+                for(int m = 0; m < 8; m++) {
+                    for(int i = 0; i < 5; i++) {
+                        if(bufSamples[m][i] != 0xFF) {
+                            uint8_t buf[28];
+                            buf[0] = BUF_RESPONSE_PACKET;
+                            int l = 1;
+                            intToBytes(m, &buf[l]);
+                            l+=4;
+                            for(int k = 0; k < 5; k++) {
+                                intToBytes(bufSamples[m][i], &buf[l]);
+                                l += 4;
+                            }
+                            buf[l] = 0x0A;
+
+                            uart_SendBytes(&buf, 28);
+                            while(uart_send_ready());
+                        }
+                    }
+                }
+
+                j = 0;
+            }
+
+            for(int i = 0; i < 8; i++) {
+                if(samples[i] != 0xFF) {
+                    bufSamples[i][j] = ADC_read(i);
+                    PORTB ^= LED;
+                } else {
+                    bufSamples[i][j] = 0xFF;
+                }
+            }
+            j++;
+            done_samples++;
+            read = false;
+        }
+        _delay_ms(10);
+    }
+
+    TIMSK5 &= ~_BV(OCIE5A);
+
     Response resp = {BUF_END_PACKET, done_samples, 0x0A, 0x0A};
     uart_SendBytes(&resp, sizeof(resp));
-    while(uart_send_ready());    
+    while(uart_send_ready());
 }

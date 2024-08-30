@@ -2,7 +2,10 @@
 #include <string.h>
 
 void cleanBuffer(char* rx_buffer, int size);
+
 unsigned int bytesToUInt(uint8_t* data);
+
+void intToBytes(int value, uint8_t* data);
 
 enum Packets {
     CNT_REQUEST_PACKET = 0x81,

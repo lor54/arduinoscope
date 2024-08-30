@@ -11,3 +11,7 @@ unsigned int bytesToUInt(uint8_t* data) {
     memcpy(&value, data, sizeof(unsigned int));
     return value;
 }
+
+void intToBytes(int value, uint8_t* data) {
+    memcpy(data, &value, sizeof(int));
+}

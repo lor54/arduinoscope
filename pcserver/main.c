@@ -155,7 +155,6 @@ void configureOperatingMode(unsigned int *operatingMode) {
 
 
 int main() {
-
     int serialfd = initSerial("/dev/tty.usbserial-110");
 
     int choice;
