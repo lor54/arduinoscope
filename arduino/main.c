@@ -102,7 +102,7 @@ void continuousSampling(int total_samples) {
             done_samples++;
             read = false;
         }
-        _delay_ms(10);
+        _delay_ms(1);
     }
     
     TIMSK5 &= ~_BV(OCIE5A);
@@ -135,6 +135,8 @@ void bufferedSampling(int total_samples) {
 
                         uart_SendBytes(&buf, 28);
                         while(uart_send_ready());
+
+                        _delay_ms(10);
                     }
                 }
 
@@ -144,7 +146,6 @@ void bufferedSampling(int total_samples) {
             for(int i = 0; i < 8; i++) {
                 if(samples[i] != 0xFF) {
                     bufSamples[i][j] = ADC_read(i);
-                    PORTB ^= LED;
                 } else {
                     bufSamples[i][j] = 0xFF;
                 }
@@ -153,7 +154,7 @@ void bufferedSampling(int total_samples) {
             done_samples++;
             read = false;
         }
-        _delay_ms(10);
+        _delay_ms(1);
     }
 
     TIMSK5 &= ~_BV(OCIE5A);
