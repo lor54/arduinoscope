@@ -12,6 +12,7 @@
 #include "avr_common/uart.h"
 #include "utils.h"
 #include <avr/sleep.h>
+#include "main.h"
 
 #define LED _BV(PB7)
 
@@ -55,7 +56,6 @@ int main(void){
         if(data_received && rx_buffer[0] == CNT_REQUEST_PACKET) {
             unsigned int samplingFrequency = bytesToUInt(&rx_buffer[9]);
             unsigned int time = bytesToUInt(&rx_buffer[13]);
-            unsigned int operatingMode = bytesToUInt(&rx_buffer[17]);
 
             OCR5A = 15624/samplingFrequency;
             int total_samples = samplingFrequency * time;
@@ -65,36 +65,61 @@ int main(void){
             }
 
             sei();
-            TIMSK5 |= _BV(OCIE5A);
+            continuousSampling(total_samples);
 
-            while (done_samples < total_samples) {
-                if(read) {
-                    for(int i = 0; i < 8; i++) {
-                        if(samples[i] != 0xFF) {
-                            samples[i] = ADC_read(i);
+            data_received = false;
+        } else if(data_received && rx_buffer[0] == BUF_REQUEST_PACKET) {
+            unsigned int samplingFrequency = bytesToUInt(&rx_buffer[9]);
+            unsigned int time = bytesToUInt(&rx_buffer[13]);
 
-                            Response resp = {CNT_RESPONSE_PACKET, samples[i], i, 0x0A};
-                            uart_SendBytes(&resp, sizeof(resp));
-                            while(uart_send_ready());
+            OCR5A = 15624/samplingFrequency;
+            int total_samples = samplingFrequency * time;
 
-                            PORTB ^= LED;
-                        }
-                        _delay_ms(10);
-                    }
-                    done_samples++;
-                    read = false;
-                }
-                _delay_ms(10);
+            for(int i = 0; i < 8; i++) {
+                samples[i] = rx_buffer[i + 1];
             }
-            
-            TIMSK5 &= ~_BV(OCIE5A);
 
-            Response resp = {CNT_END_PACKET, done_samples, 0x0A, 0x0A};
-            uart_SendBytes(&resp, sizeof(resp));
-            while(uart_send_ready());
+            sei();
+            bufferedSampling(total_samples);
 
             data_received = false;
         }
         sleep_mode();
     }
+}
+
+void continuousSampling(int total_samples) {
+    TIMSK5 |= _BV(OCIE5A);
+
+    while (done_samples < total_samples) {
+        if(read) {
+            for(int i = 0; i < 8; i++) {
+                if(samples[i] != 0xFF) {
+                    samples[i] = ADC_read(i);
+
+                    Response resp = {CNT_RESPONSE_PACKET, samples[i], i, 0x0A};
+                    uart_SendBytes(&resp, sizeof(resp));
+                    while(uart_send_ready());
+
+                    PORTB ^= LED;
+                }
+                _delay_ms(10);
+            }
+            done_samples++;
+            read = false;
+        }
+        _delay_ms(10);
+    }
+    
+    TIMSK5 &= ~_BV(OCIE5A);
+
+    Response resp = {CNT_END_PACKET, done_samples, 0x0A, 0x0A};
+    uart_SendBytes(&resp, sizeof(resp));
+    while(uart_send_ready());
+}
+
+void bufferedSampling(int total_samples) {
+    Response resp = {BUF_END_PACKET, done_samples, 0x0A, 0x0A};
+    uart_SendBytes(&resp, sizeof(resp));
+    while(uart_send_ready());    
 }

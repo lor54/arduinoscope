@@ -54,17 +54,17 @@ void continuosSampling(int serialfd, bool* sampleChannels, int numChannels, unsi
     openFile("adc.txt", numChannels, sampleChannels);
     int firstChannelIndex = getFirstChannelIndex(sampleChannels, numChannels);
 
-    bool exit = false;
-    while(!exit) {
+    bool cexit = false;
+    while(!cexit) {
         unsigned char buffer[10];
         int datasize = 0;
         do {
             datasize = read(serialfd, &buffer, sizeof(buffer));
 
             if(buffer[0] == CNT_END_PACKET) {
-                exit = true;
+                cexit = true;
             }
-        } while (buffer[0] != CNT_RESPONSE_PACKET && !exit);
+        } while (buffer[0] != CNT_RESPONSE_PACKET && !cexit);
 
         if(datasize > 0 && buffer[0] != CNT_END_PACKET) {
             printf("Buffer: %x, %u, %u\n", buffer[0], buffer[1], buffer[3]);
@@ -73,6 +73,11 @@ void continuosSampling(int serialfd, bool* sampleChannels, int numChannels, unsi
                 writeNewLine();
             }
             writeToFile(buffer[1]);
+        }
+
+        if(cexit) {
+            printf("Sampling completed.\n");
+            exit(0);
         }
     }
 
