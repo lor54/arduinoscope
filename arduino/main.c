@@ -1,9 +1,3 @@
-/**
- * @file 
- * @author Lorenzo Thomas Contessa <lorenzocontessa.dev@gmail.com>
- * @date 29/08/2024
- * @copyright 2023 Copyright (c) | Sapienza Space Team, all rights reserved.
- */
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <util/delay.h>
@@ -125,24 +119,22 @@ void bufferedSampling(int total_samples) {
     int j = 0;
     while (done_samples < total_samples) {
         if(read) {
-            if(j > 4) {
+            if(j >= 4) {
                 for(int m = 0; m < 8; m++) {
-                    for(int i = 0; i < 5; i++) {
-                        if(bufSamples[m][i] != 0xFF) {
-                            uint8_t buf[28];
-                            buf[0] = BUF_RESPONSE_PACKET;
-                            int l = 1;
-                            intToBytes(m, &buf[l]);
-                            l+=4;
-                            for(int k = 0; k < 5; k++) {
-                                intToBytes(bufSamples[m][i], &buf[l]);
-                                l += 4;
-                            }
-                            buf[l] = 0x0A;
-
-                            uart_SendBytes(&buf, 28);
-                            while(uart_send_ready());
+                    if(samples[m] != 0xFF) {
+                        uint8_t buf[28];
+                        buf[0] = BUF_RESPONSE_PACKET;
+                        int l = 1;
+                        intToBytes(m, &buf[l]);
+                        l+=4;
+                        for(int k = 0; k < 5; k++) {
+                            intToBytes(bufSamples[m][k], &buf[l]);
+                            l += 4;
                         }
+                        buf[l] = 0x0A;
+
+                        uart_SendBytes(&buf, 28);
+                        while(uart_send_ready());
                     }
                 }
 
