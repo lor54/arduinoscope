@@ -18,11 +18,11 @@ void printBufferHex(const char* buffer, size_t length) {
     printf("\n");
 }
 
-void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time, uint8_t operatingMode) {
+void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time, unsigned int operatingMode) {
     printf("Sampling %d channels at %d Hz...\n", numChannels, samplingFrequency);
 
     uint8_t data[18];
-    data[0] = CNT_REQUEST_PACKET;
+    data[0] = operatingMode == 0 ? CNT_REQUEST_PACKET : BUF_REQUEST_PACKET;
     int j = 1;
     for(int i = 0; i < MAX_CHN; i++) {
         if(sampleChannels[i]) {
@@ -80,7 +80,29 @@ void continuosSampling(int serialfd, bool* sampleChannels, int numChannels, unsi
 }
 
 void bufferedSampling(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time) {
-    return;
+    int firstChannelIndex = getFirstChannelIndex(sampleChannels, numChannels);
+
+    bool cexit = false;
+    while(!cexit) {
+        unsigned char buffer[28];
+        int datasize = 0;
+        do {
+            datasize = read(serialfd, &buffer, sizeof(buffer));
+
+            if(buffer[0] == BUF_END_PACKET) {
+                cexit = true;
+            }
+        } while (buffer[0] != BUF_RESPONSE_PACKET && !cexit);
+
+        if(datasize > 0 && buffer[0] != BUF_END_PACKET) {
+            printf("Buffer: %x, %d, %d\n", buffer[0], buffer[1], buffer[5]);
+        }
+
+        if(cexit) {
+            printf("Sampling completed.\n");
+            exit(0);
+        }
+    }
 }
 
 void configureChannels(int *selectedChannels, bool *channels) {
@@ -192,7 +214,7 @@ int main() {
                 printf("Exiting...\n");
                 break;
             default:
-                printf("Invalid choice. Please enter a number between 1 and 4.\n");
+                printf("Invalid choice. Please enter a number between 1 and 6.\n");
         }
         while(getchar() != '\n');
     } while (choice != 6);
