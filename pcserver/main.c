@@ -51,7 +51,7 @@ void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigne
 }
 
 void continuosSampling(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time) {
-    openFile("adc.txt", numChannels, sampleChannels);
+    openFile("adcContinuous.txt", MAX_CHN, sampleChannels);
     int firstChannelIndex = getFirstChannelIndex(sampleChannels, numChannels);
 
     bool cexit = false;
@@ -67,7 +67,7 @@ void continuosSampling(int serialfd, bool* sampleChannels, int numChannels, unsi
         } while (buffer[0] != CNT_RESPONSE_PACKET && !cexit);
 
         if(datasize > 0 && buffer[0] != CNT_END_PACKET) {
-            //printf("Buffer: %x, %u, %u\n", buffer[0], buffer[1], buffer[3]);
+            printf("Buffer: %x, %u, %u\n", buffer[0], buffer[1], buffer[3]);
 
             if(buffer[3] == firstChannelIndex) {
                 writeNewLine();
@@ -164,9 +164,9 @@ void configureChannels(int *selectedChannels, bool *channels) {
 
 void configureSamplingFrequency(unsigned int *samplingFrequency) {
     do {
-        printf("Enter the sampling frequency (Hz): ");
+        printf("Enter the sampling frequency between 1 to 10 (Hz): ");
         scanf("%u", samplingFrequency);
-    } while(*samplingFrequency <= 0);
+    } while(*samplingFrequency <= 0 || *samplingFrequency > 10);
 }
 
 void configureTime(unsigned int *time) {

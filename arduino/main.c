@@ -91,23 +91,22 @@ void continuousSampling(int total_samples) {
                 if(samples[i] != 0xFF) {
                     samples[i] = ADC_read(i);
 
-                    Response resp = {CNT_RESPONSE_PACKET, samples[i], i, 0x0A};
+                    Response resp = {CNT_RESPONSE_PACKET, samples[i], i};
                     uart_SendBytes(&resp, sizeof(resp));
                     while(uart_send_ready());
 
                     _delay_ms(10);
-                    PORTB ^= LED;
                 }
             }
             done_samples++;
             read = false;
         }
-        _delay_ms(1);
+        _delay_ms(10);
     }
     
     TIMSK5 &= ~_BV(OCIE5A);
 
-    Response resp = {CNT_END_PACKET, done_samples, 0x0A, 0x0A};
+    Response resp = {CNT_END_PACKET, done_samples, 0x0A};
     uart_SendBytes(&resp, sizeof(resp));
     while(uart_send_ready());
 }
@@ -159,7 +158,7 @@ void bufferedSampling(int total_samples) {
 
     TIMSK5 &= ~_BV(OCIE5A);
 
-    Response resp = {BUF_END_PACKET, done_samples, 0x0A, 0x0A};
+    Response resp = {BUF_END_PACKET, done_samples, 0x0A};
     uart_SendBytes(&resp, sizeof(resp));
     while(uart_send_ready());
 }

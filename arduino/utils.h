@@ -21,6 +21,5 @@ struct response {
     enum Packets packet_type;
     unsigned int value;
     unsigned char channel;
-    unsigned char lastByte;
 };
 typedef struct response Response;

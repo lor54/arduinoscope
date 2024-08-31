@@ -8,7 +8,7 @@ void openFile(const char *filename, int numChannels, bool* sampleChannels) {
     if (file == NULL) {
         return;
     }
-
+    
     for (int i = 0; i < numChannels; i++) {
         if(sampleChannels[i]) fprintf(file, "Channel %d\t", i);
     }

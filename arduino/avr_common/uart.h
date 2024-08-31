@@ -21,4 +21,4 @@ void uart_init();
 void uart_putchar(char* data);
 char uart_setReceivedBuffer(char* buffer, int size, bool* usart_getchar);
 void uart_SendBytes(char *s, int size);
-char uart_send_ready(void);
+char uart_send_ready();
