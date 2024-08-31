@@ -51,7 +51,7 @@ int main(void){
             unsigned int samplingFrequency = bytesToUInt(&rx_buffer[9]);
             unsigned int time = bytesToUInt(&rx_buffer[13]);
 
-            OCR5A = 15624/samplingFrequency;
+            OCR5A = 15625/samplingFrequency;
             int total_samples = samplingFrequency * time;
 
             for(int i = 0; i < 8; i++) {
@@ -95,9 +95,9 @@ void continuousSampling(int total_samples) {
                     uart_SendBytes(&resp, sizeof(resp));
                     while(uart_send_ready());
 
+                    _delay_ms(10);
                     PORTB ^= LED;
                 }
-                _delay_ms(10);
             }
             done_samples++;
             read = false;

@@ -67,7 +67,7 @@ void continuosSampling(int serialfd, bool* sampleChannels, int numChannels, unsi
         } while (buffer[0] != CNT_RESPONSE_PACKET && !cexit);
 
         if(datasize > 0 && buffer[0] != CNT_END_PACKET) {
-            printf("Buffer: %x, %u, %u\n", buffer[0], buffer[1], buffer[3]);
+            //printf("Buffer: %x, %u, %u\n", buffer[0], buffer[1], buffer[3]);
 
             if(buffer[3] == firstChannelIndex) {
                 writeNewLine();
@@ -86,9 +86,31 @@ void continuosSampling(int serialfd, bool* sampleChannels, int numChannels, unsi
 
 void bufferedSampling(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time) {
     int firstChannelIndex = getFirstChannelIndex(sampleChannels, numChannels);
+    openFile("adcBuffered.txt", numChannels, sampleChannels);
 
+    int channelData[MAX_CHN][5];
+    for(int i = 0; i < MAX_CHN; i++) {
+        if(sampleChannels[i]) {
+            channelData[i][0] = 0;
+        } else {
+            channelData[i][0] = 0xFF;
+        }
+    }
+
+    int count = 0;
     bool cexit = false;
     while(!cexit) {
+        if(count >= numChannels) {
+            for(int i = 0; i < 5; i++) {
+                for(int j = 0; j < MAX_CHN; j++) {
+                    if(channelData[j][0] != 0xFF) writeToFile(channelData[j][i]);
+                    else break;
+                }
+                writeNewLine();
+            }
+            count = 0;
+        }
+
         unsigned char buffer[28];
         int datasize = 0;
         do {
@@ -100,11 +122,19 @@ void bufferedSampling(int serialfd, bool* sampleChannels, int numChannels, unsig
         } while (buffer[0] != BUF_RESPONSE_PACKET && !cexit);
 
         if(datasize > 0 && buffer[0] != BUF_END_PACKET) {
-            printf("Buffer: %x, %d, %d\n", buffer[0], buffer[1], buffer[5]);
+            printf("Buffer: %x, %d, %d, %d, %d, %d, %d\n", buffer[0], buffer[1], buffer[5], buffer[9], buffer[13], buffer[17], buffer[21]);
+
+            int l = 0;
+            for(int i = 0; i < 5; i++) {
+                channelData[buffer[1]][i] = buffer[5 + l];
+                l += 4;
+            }
+            count++;
         }
 
         if(cexit) {
             printf("Sampling completed.\n");
+            closeFile();
             exit(0);
         }
     }
