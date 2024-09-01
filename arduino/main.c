@@ -85,8 +85,6 @@ int main(void){
                 samples[i] = rx_buffer[i + 1];
             }
 
-
-
             sei();
             bufferedSampling(total_samples);
 

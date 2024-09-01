@@ -4,19 +4,11 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "serial.h"
-#include "utils.h"
+#include "libs/serial.h"
+#include "libs/utils.h"
+#include "libs/file.h"
+#include "libs/menuUtils.h"
 #include "main.h"
-#include "file.h"
-
-#define MAX_CHN 8
-
-void printBufferHex(const char* buffer, size_t length) {
-    for (size_t i = 0; i < length; i++) {
-        printf("%02x ", (unsigned char)buffer[i]);
-    }
-    printf("\n");
-}
 
 void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time, unsigned int operatingMode) {
     printf("Sampling %d channels at %d Hz...\n", numChannels, samplingFrequency);
@@ -46,11 +38,11 @@ void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigne
         perror("Errore durante la scrittura sulla porta seriale");
     }
 
-    if (operatingMode == 0) continuosSampling(serialfd, sampleChannels, numChannels, samplingFrequency, time);
+    if (operatingMode == 0) continuousSampling(serialfd, sampleChannels, numChannels, samplingFrequency, time);
     else bufferedSampling(serialfd, sampleChannels, numChannels, samplingFrequency, time);
 }
 
-void continuosSampling(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time) {
+void continuousSampling(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time) {
     openFile("adcContinuous.txt", MAX_CHN, sampleChannels);
     int firstChannelIndex = getFirstChannelIndex(sampleChannels);
 
@@ -85,7 +77,6 @@ void continuosSampling(int serialfd, bool* sampleChannels, int numChannels, unsi
 }
 
 void bufferedSampling(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time) {
-    int firstChannelIndex = getFirstChannelIndex(sampleChannels);
     openFile("adcBuffered.txt", numChannels, sampleChannels);
 
     int channelData[MAX_CHN][5];
@@ -145,53 +136,7 @@ void bufferedSampling(int serialfd, bool* sampleChannels, int numChannels, unsig
     }
 }
 
-void configureChannels(int *selectedChannels, bool *channels) {
-    int numChannel;
-    int res;
-    do {
-        printf("Selected channels: %d\n", *selectedChannels);
-        printf("Enter the number of channel to sample (0-7), type exit to exit: ");
-        res = scanf("%d", &numChannel);
-        if(res > 0) {
-            if(numChannel < 0 || numChannel > (MAX_CHN - 1)) {
-                printf("Invalid number of channel.\n");
-            } else {
-                if(!channels[numChannel]) {
-                    channels[numChannel] = true;
-                    (*selectedChannels)++;
-                } else {
-                    printf("Channel already selected.\n");
-                }
-            }
-        }
-    } while(res > 0 && *selectedChannels < MAX_CHN);
-}
-
-void configureSamplingFrequency(unsigned int *samplingFrequency) {
-    do {
-        printf("Enter the sampling frequency between 1 to 10 (Hz): ");
-        scanf("%u", samplingFrequency);
-    } while(*samplingFrequency <= 0 || *samplingFrequency > 10);
-}
-
-void configureTime(unsigned int *time) {
-    do {
-        printf("Enter the sampling time (Seconds): ");
-        scanf("%u", time);
-    } while(*time <= 0);
-}
-
-void configureOperatingMode(unsigned int *operatingMode) {
-    do {
-        printf("Enter the operating mode (0 - Continuous, 1 - Buffered Mode): ");
-        scanf("%u", operatingMode);
-    } while(*operatingMode != 0 && *operatingMode != 1);
-}
-
-
-int main() {
-    int serialfd = initSerial("/dev/tty.usbserial-110");
-
+void openMenu(int serialfd) {
     int choice;
     unsigned int samplingFrequency = 1, time = 15;
     unsigned int operatingMode = 0;
@@ -257,6 +202,15 @@ int main() {
         }
         while(getchar() != '\n');
     } while (choice != 6);
+}
 
+int main() {
+    int serialfd = initSerial("/dev/tty.usbserial-110");
+    if (serialfd == -1) {
+        perror("Error during serial port initialization, exiting...");
+        return -1;
+    }
+
+    openMenu(serialfd);
     return 0;
 }

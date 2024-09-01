@@ -37,3 +37,7 @@ void writeNewLine() {
 
     fprintf(file, "\n");
 }
+
+void removeFileIfExists(const char *filename) {
+    remove(filename);
+}

@@ -1,3 +1,6 @@
+#ifndef UTILS_H
+#define UTILS_H
+
 #include "stdint.h"
 #include <string.h>
 
@@ -24,3 +27,5 @@ struct response {
     unsigned char channel;
 };
 typedef struct response Response;
+
+#endif // UTILS_H

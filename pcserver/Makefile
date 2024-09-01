@@ -1,27 +1,18 @@
-OBJS	= main.o serial.o utils.o file.o
-SOURCE	= main.c serial.c utils.c file.c
-HEADER	= serial.h utils.h file.h
+SOURCE	= $(wildcard *.c) $(wildcard libs/*.c)
+OBJS	= $(SOURCE:.c=.o)
+HEADER	= $(wildcard *.h) $(wildcard libs/*.h)
 OUT	= pcserver
 FLAGS	= -g -c -Wall
 LFLAGS	= 
 CC	= gcc
 
-all:	pcserver
+all:	$(OUT)
 
-pcserver: $(OBJS)
-	$(CC) -g $(OBJS) -o $(OUT) $(LFLAGS)
+$(OUT): $(OBJS)
+	$(CC) $(OBJS) -o $(OUT) $(LFLAGS)
 
-main.o: main.c
-	$(CC) $(FLAGS) main.c 
-
-serial.o: serial.c
-	$(CC) $(FLAGS) serial.c 
-
-utils.o: utils.c
-	$(CC) $(FLAGS) utils.c 
-
-file.o: file.c
-	$(CC) $(FLAGS) file.c 
+%.o: %.c $(HEADER)
+	$(CC) $(FLAGS) $< -o $@
 
 clean:
 	rm -f $(OBJS) $(OUT)

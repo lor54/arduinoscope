@@ -1,3 +1,6 @@
+#ifndef UTILS_H
+#define UTILS_H
+
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
@@ -16,3 +19,5 @@ enum Packets {
 void uintToBytes(unsigned int value, uint8_t* data);
 
 int getFirstChannelIndex(bool* sampleChannels);
+
+#endif // UTILS_H

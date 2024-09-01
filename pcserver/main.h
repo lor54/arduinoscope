@@ -1,11 +1,12 @@
+#ifndef MAIN_H
+#define MAIN_H
+
 #include <stdint.h>
 #include <stdbool.h>
 
-void printBufferHex(const char* buffer, size_t length);
-
 void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time, unsigned int operatingMode);
 
-void continuosSampling(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time);
+void continuousSampling(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time);
 
 void bufferedSampling(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time);
 
@@ -16,3 +17,7 @@ void configureSamplingFrequency(unsigned int *samplingFrequency);
 void configureTime(unsigned int *time);
 
 void configureOperatingMode(unsigned int *operatingMode);
+
+void openMenu(int serialfd);
+
+#endif // MAIN_H
