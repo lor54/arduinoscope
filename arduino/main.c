@@ -8,8 +8,6 @@
 #include <avr/sleep.h>
 #include "main.h"
 
-#define LED _BV(PB7)
-
 int done_samples = 0;
 uint8_t samples[8];
 bool read = false;
@@ -28,9 +26,6 @@ ISR(TIMER5_COMPA_vect) {
 
 int main(void){
     uart_init();
-
-    DDRB = LED;
-    PORTB ^= LED;
 
     TCCR5A = 0;
     TCCR5B = (1 << WGM52) | (1 << CS50) | (1 << CS52);
@@ -73,6 +68,8 @@ int main(void){
                 samples[i] = rx_buffer[i + 1];
             }
 
+
+
             sei();
             bufferedSampling(total_samples);
 
@@ -112,8 +109,20 @@ void continuousSampling(int total_samples) {
 }
 
 void bufferedSampling(int total_samples) {
-    TIMSK5 |= _BV(OCIE5A);
     int bufSamples[8][5];
+
+    const uint8_t mask = (1 << 6);
+    DDRB &= ~mask;
+    PORTB |= mask;
+
+    while((PINB&mask)!=0) {
+        _delay_ms(10);
+    }
+    Response resp2 = {BUF_RESPONSE_BEGIN, 0x0A, 0x0A};
+    uart_SendBytes(&resp2, sizeof(resp2));
+    while(uart_send_ready());
+
+    TIMSK5 |= _BV(OCIE5A);
 
     int j = 0;
     while (done_samples < total_samples) {

@@ -14,7 +14,8 @@ enum Packets {
     CNT_RESPONSE_PACKET = 0x84,
     BUF_RESPONSE_PACKET = 0x85,
     CNT_END_PACKET = 0x86,
-    BUF_END_PACKET = 0x87
+    BUF_END_PACKET = 0x87,
+    BUF_RESPONSE_BEGIN = 0x88
 };
 
 struct response {

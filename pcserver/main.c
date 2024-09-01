@@ -97,6 +97,8 @@ void bufferedSampling(int serialfd, bool* sampleChannels, int numChannels, unsig
         }
     }
 
+    bool triggerReceived = false;
+    printf("Waiting for GND trigger on Digital Pin 12...\n");
     int count = 0;
     bool cexit = false;
     while(!cexit) {
@@ -118,6 +120,9 @@ void bufferedSampling(int serialfd, bool* sampleChannels, int numChannels, unsig
 
             if(buffer[0] == BUF_END_PACKET) {
                 cexit = true;
+            } else if(!triggerReceived && buffer[0] == BUF_RESPONSE_BEGIN) {
+                printf("Trigger received!\n");
+                triggerReceived = true;
             }
         } while (buffer[0] != BUF_RESPONSE_PACKET && !cexit);
 
