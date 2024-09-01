@@ -9,10 +9,22 @@
 #include "main.h"
 
 int done_samples = 0;
-uint8_t samples[8];
+int samples[8];
 bool read = false;
 
-unsigned int ADC_read(unsigned char channel) {
+
+void enableSquareWave() {
+    DDRB |= (1 << PB1);
+    
+    TCCR1A = 0;
+    TCCR1B = (1 << WGM12) | (1 << CS12) | (1 << CS10); // prescaler = 1024
+    
+    OCR1A = 1561; // 10 Hz
+    
+    TCCR1A |= (1 << COM1A0);
+}
+
+int ADC_read(unsigned char channel) {
     ADMUX = (ADMUX & 0xF0) | (channel & 0x0F);
     ADCSRA|=(1<<ADSC);
     while(!(ADCSRA & (1<<ADIF)));
@@ -26,6 +38,7 @@ ISR(TIMER5_COMPA_vect) {
 
 int main(void){
     uart_init();
+    enableSquareWave();
 
     TCCR5A = 0;
     TCCR5B = (1 << WGM52) | (1 << CS50) | (1 << CS52);
@@ -50,7 +63,11 @@ int main(void){
             int total_samples = samplingFrequency * time;
 
             for(int i = 0; i < 8; i++) {
-                samples[i] = rx_buffer[i + 1];
+                if(rx_buffer[i + 1] == 0xFF) {
+                    samples[i] = -1;
+                } else {
+                    samples[i] = rx_buffer[i + 1];
+                }
             }
 
             sei();
@@ -85,7 +102,7 @@ void continuousSampling(int total_samples) {
     while (done_samples < total_samples) {
         if(read) {
             for(int i = 0; i < 8; i++) {
-                if(samples[i] != 0xFF) {
+                if(samples[i] != -1) {
                     samples[i] = ADC_read(i);
 
                     Response resp = {CNT_RESPONSE_PACKET, samples[i], i};
@@ -129,7 +146,7 @@ void bufferedSampling(int total_samples) {
         if(read) {
             if(j >= 4) {
                 for(int m = 0; m < 8; m++) {
-                    if(samples[m] != 0xFF) {
+                    if(samples[m] != -1) {
                         uint8_t buf[28];
                         buf[0] = BUF_RESPONSE_PACKET;
                         int l = 1;
@@ -152,10 +169,10 @@ void bufferedSampling(int total_samples) {
             }
 
             for(int i = 0; i < 8; i++) {
-                if(samples[i] != 0xFF) {
+                if(samples[i] != -1) {
                     bufSamples[i][j] = ADC_read(i);
                 } else {
-                    bufSamples[i][j] = 0xFF;
+                    bufSamples[i][j] = -1;
                 }
             }
             j++;

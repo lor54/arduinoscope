@@ -15,4 +15,4 @@ enum Packets {
 
 void uintToBytes(unsigned int value, uint8_t* data);
 
-int getFirstChannelIndex(bool* sampleChannels, int numChannels);
+int getFirstChannelIndex(bool* sampleChannels);

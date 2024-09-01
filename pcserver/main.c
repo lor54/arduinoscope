@@ -52,7 +52,7 @@ void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigne
 
 void continuosSampling(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time) {
     openFile("adcContinuous.txt", MAX_CHN, sampleChannels);
-    int firstChannelIndex = getFirstChannelIndex(sampleChannels, numChannels);
+    int firstChannelIndex = getFirstChannelIndex(sampleChannels);
 
     bool cexit = false;
     while(!cexit) {
@@ -85,7 +85,7 @@ void continuosSampling(int serialfd, bool* sampleChannels, int numChannels, unsi
 }
 
 void bufferedSampling(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time) {
-    int firstChannelIndex = getFirstChannelIndex(sampleChannels, numChannels);
+    int firstChannelIndex = getFirstChannelIndex(sampleChannels);
     openFile("adcBuffered.txt", numChannels, sampleChannels);
 
     int channelData[MAX_CHN][5];
@@ -93,7 +93,7 @@ void bufferedSampling(int serialfd, bool* sampleChannels, int numChannels, unsig
         if(sampleChannels[i]) {
             channelData[i][0] = 0;
         } else {
-            channelData[i][0] = 0xFF;
+            channelData[i][0] = -1;
         }
     }
 
@@ -105,7 +105,7 @@ void bufferedSampling(int serialfd, bool* sampleChannels, int numChannels, unsig
         if(count >= numChannels) {
             for(int i = 0; i < 5; i++) {
                 for(int j = 0; j < MAX_CHN; j++) {
-                    if(channelData[j][0] != 0xFF) writeToFile(channelData[j][i]);
+                    if(channelData[j][0] != -1) writeToFile(channelData[j][i]);
                     else break;
                 }
                 writeNewLine();
