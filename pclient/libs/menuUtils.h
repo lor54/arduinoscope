@@ -11,4 +11,6 @@ void configureTime(unsigned int *time);
 
 void configureOperatingMode(unsigned int *operatingMode);
 
+void setDebugMode(bool *debugMode);
+
 #endif // MENUUTILS_H

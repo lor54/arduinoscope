@@ -1,7 +1,7 @@
 SOURCE	= $(wildcard *.c) $(wildcard libs/*.c)
 OBJS	= $(SOURCE:.c=.o)
 HEADER	= $(wildcard *.h) $(wildcard libs/*.h)
-OUT	= pcserver
+OUT	= pclient
 FLAGS	= -g -c -Wall
 LFLAGS	= 
 CC	= gcc

@@ -10,6 +10,8 @@
 #include "libs/menuUtils.h"
 #include "main.h"
 
+bool debugMode = true;
+
 void sampleChannels(int serialfd, bool* sampleChannels, int numChannels, unsigned int samplingFrequency, unsigned int time, unsigned int operatingMode) {
     printf("Sampling %d channels at %d Hz...\n", numChannels, samplingFrequency);
 
@@ -59,7 +61,7 @@ void continuousSampling(int serialfd, bool* sampleChannels, int numChannels, uns
         } while (buffer[0] != CNT_RESPONSE_PACKET && !cexit);
 
         if(datasize > 0 && buffer[0] != CNT_END_PACKET) {
-            printf("Buffer: %x, %u, %u\n", buffer[0], buffer[1], buffer[3]);
+            if(debugMode) printf("Buffer: %x, %u, %u\n", buffer[0], buffer[1], buffer[3]);
 
             if(buffer[3] == firstChannelIndex) {
                 writeNewLine();
@@ -117,7 +119,7 @@ void bufferedSampling(int serialfd, bool* sampleChannels, int numChannels, unsig
         } while (buffer[0] != BUF_RESPONSE_PACKET && !cexit);
 
         if(datasize > 0 && buffer[0] != BUF_END_PACKET) {
-            printf("Buffer: %x, %d, %d, %d, %d, %d, %d\n", buffer[0], buffer[1], buffer[5], buffer[9], buffer[13], buffer[17], buffer[21]);
+            if(debugMode) printf("Buffer: %x, %d, %d, %d, %d, %d, %d\n", buffer[0], buffer[1], buffer[5], buffer[9], buffer[13], buffer[17], buffer[21]);
 
             int l = 0;
             for(int i = 0; i < 5; i++) {
@@ -155,17 +157,18 @@ void openMenu(int serialfd) {
                 else printf(", %d", i);
             }
         }
-        printf("}, Sampling Frequency: %d Hz, Time: %d seconds, Operating Mode: %s\n", samplingFrequency, time, operatingMode ? "Buffered" : "Continuous");
+        printf("}, Sampling Frequency: %d Hz, Time: %d seconds, Operating Mode: %s, Debug Mode: %s\n", samplingFrequency, time, operatingMode ? "Buffered" : "Continuous", debugMode ? "Enabled" : "Disabled");
         printf("\nMenu:\n");
         printf("1. Start Sampling\n");
         printf("2. Configure Channels\n");
         printf("3. Configure Sampling Frequency\n");
         printf("4. Configure Time\n");
         printf("5. Configure Operating Mode\n");
-        printf("6. Exit\n");
+        printf("6. Configure Debug Mode\n");
+        printf("7. Exit\n");
         printf("Enter your choice: ");
-        while (scanf("%d", &choice) != 1 || choice < 1 || choice > 6) {
-            printf("Invalid input. Please enter a number between 1 and 4: ");
+        while (scanf("%d", &choice) != 1 || choice < 1 || choice > 7) {
+            printf("Invalid input. Please enter a number between 1 and 7: ");
             while(getchar() != '\n');
         }
 
@@ -194,6 +197,10 @@ void openMenu(int serialfd) {
                 system("clear");
                 break;
             case 6:
+                setDebugMode(&debugMode);
+                system("clear");
+                break;
+            case 7:
                 printf("Exiting...\n");
                 break;
             default:
