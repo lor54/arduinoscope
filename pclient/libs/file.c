@@ -22,12 +22,12 @@ void closeFile() {
     }
 }
 
-void writeToFile(int adcValue) {
+void writeToFile(float adcValue) {
     if (file == NULL) {
         return;
     }
 
-    fprintf(file, "%d\t", adcValue);
+    fprintf(file, "%.2f\t", adcValue);
 }
 
 void writeNewLine() {

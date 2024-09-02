@@ -62,3 +62,10 @@ void setDebugMode(bool *debugMode) {
         }
     } while(choice != 0 && choice != 1);
 }
+
+void configureOutputMode(int *outputMode) {
+    do {
+        printf("Enter the output mode (1 - Voltage, 0 - Value): ");
+        scanf("%d", outputMode);
+    } while(*outputMode != 0 && *outputMode != 1);
+}

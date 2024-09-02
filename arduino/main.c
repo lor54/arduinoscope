@@ -3,9 +3,10 @@
 #include <util/delay.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <avr/sleep.h>
+
 #include "avr_common/uart.h"
 #include "utils.h"
-#include <avr/sleep.h>
 #include "main.h"
 
 int done_samples = 0;
@@ -122,11 +123,10 @@ void continuousSampling(int total_samples) {
 void bufferedSampling(int total_samples) {
     int bufSamples[8][5];
 
-    const uint8_t mask = (1 << 6);
-    DDRB &= ~mask;
-    PORTB |= mask;
+    DDRB &= ~_BV(PB6);
+    PORTB |= _BV(PB6);
 
-    while((PINB&mask)!=0) {
+    while((PINB & _BV(PB6)) != 0) {
         _delay_ms(10);
     }
 

@@ -13,4 +13,6 @@ void configureOperatingMode(unsigned int *operatingMode);
 
 void setDebugMode(bool *debugMode);
 
+void configureOutputMode(int *outputMode);
+
 #endif // MENUUTILS_H
