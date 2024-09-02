@@ -12,18 +12,6 @@ int done_samples = 0;
 int samples[8];
 bool read = false;
 
-
-void enableSquareWave() {
-    DDRB |= (1 << PB1);
-    
-    TCCR1A = 0;
-    TCCR1B = (1 << WGM12) | (1 << CS12) | (1 << CS10); // prescaler = 1024
-    
-    OCR1A = 1561; // 10 Hz
-    
-    TCCR1A |= (1 << COM1A0);
-}
-
 int ADC_read(unsigned char channel) {
     ADMUX = (ADMUX & 0xF0) | (channel & 0x0F);
     ADCSRA|=(1<<ADSC);
@@ -34,6 +22,10 @@ int ADC_read(unsigned char channel) {
 
 ISR(TIMER5_COMPA_vect) {
     read = true;
+}
+
+ISR(TIMER4_COMPA_vect) {
+  PORTH ^= _BV(PH4);
 }
 
 int main(void){
@@ -78,11 +70,15 @@ int main(void){
             unsigned int samplingFrequency = bytesToUInt(&rx_buffer[9]);
             unsigned int time = bytesToUInt(&rx_buffer[13]);
 
-            OCR5A = 15624/samplingFrequency;
+            OCR5A = 15625/samplingFrequency;
             int total_samples = samplingFrequency * time;
 
             for(int i = 0; i < 8; i++) {
-                samples[i] = rx_buffer[i + 1];
+                if(rx_buffer[i + 1] == 0xFF) {
+                    samples[i] = -1;
+                } else {
+                    samples[i] = rx_buffer[i + 1];
+                }
             }
 
             sei();
@@ -133,6 +129,7 @@ void bufferedSampling(int total_samples) {
     while((PINB&mask)!=0) {
         _delay_ms(10);
     }
+
     Response resp2 = {BUF_RESPONSE_BEGIN, 0x0A, 0x0A};
     uart_SendBytes(&resp2, sizeof(resp2));
     while(uart_send_ready());
@@ -154,7 +151,6 @@ void bufferedSampling(int total_samples) {
                             intToBytes(bufSamples[m][k], &buf[l]);
                             l += 4;
                         }
-                        buf[l] = 0x0A;
 
                         uart_SendBytes(&buf, 28);
                         while(uart_send_ready());
@@ -169,8 +165,6 @@ void bufferedSampling(int total_samples) {
             for(int i = 0; i < 8; i++) {
                 if(samples[i] != -1) {
                     bufSamples[i][j] = ADC_read(i);
-                } else {
-                    bufSamples[i][j] = -1;
                 }
             }
             j++;

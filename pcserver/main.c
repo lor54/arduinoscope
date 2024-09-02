@@ -96,8 +96,7 @@ void bufferedSampling(int serialfd, bool* sampleChannels, int numChannels, unsig
         if(count >= numChannels) {
             for(int i = 0; i < 5; i++) {
                 for(int j = 0; j < MAX_CHN; j++) {
-                    if(channelData[j][0] != -1) writeToFile(channelData[j][i]);
-                    else break;
+                    if(sampleChannels[j]) writeToFile(channelData[j][i]);
                 }
                 writeNewLine();
             }
